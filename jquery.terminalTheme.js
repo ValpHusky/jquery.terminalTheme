@@ -25,77 +25,93 @@
 
 
 var ErrorDispatcher = function() {
-    this.error = {
-        typeError: function(obj, type) {
-            return "Object[" + obj.constructor + "] IS NOT :" + type + "";
-        }
-    };
-    this.throw = function(e) {
-        throw new Error(e);
-    };
+    //constructor
+};
+ErrorDispatcher.prototype.error = {
+    typeError: function(obj, type) {
+        return "Object[" + obj.constructor + "] IS NOT :" + type + "";
+    }
+};
+ErrorDispatcher.prototype.throw = function(e) {
+    throw new Error(e);
 };
 /**
  * Event Simulator Class whichs can make any subclass being able to listen or register events.
  * @returns {BarkEcho}
  */
 var BarkEcho = function() {
-    // Adds base class to this object
-    this.prototype = new ErrorDispatcher();
-    /**
-     * Object containing the barks registered for listening.
-     */
-    this.barksRegistered = {};
-    /**
-     * This functions creates a listener for any bark dispatchers in an object with parent prototype BarkEcho
-     * @param {String} bark Bark Name
-     * @param {function} fn <i>(optional)</i>Callback function carring as parameter the <b><i>1. Bark Name, 2. Target Object, 3. Args from dispatch</i></b>.
-     * @param {BarkEcho} bubbled <i>(optional)</i>The bark echo object to which this bark will be bubbled to.
-     * @returns {undefined}
-     */
-    this.addBarkListener = function(bark, fn, bubbled) {
-        if (!this.barksRegistered[bark]) {
-            this.barksRegistered[bark] = [];
-        }
-        if (bubbled) {
-            if (!this.barksRegistered[bark].buble instanceof BarkEcho) {
-                this.errors.typeError(bubbled, "BarkEcho");
-            }
-        }
-        this.barksRegistered[bark].push({callback: fn, buble: bubbled});
-    };
-    /**
-     * Triggers the bark
-     * @param {type} bark Bark Name
-     * @returns {undefined}
-     */
-    this.dispatchBark = function(bark, args) {
-        if (this.barksRegistered[bark]) {
-            if (this.barksRegistered[bark].fn) {
-                this.barksRegistered[bark].fn(bark, this, args);
-            }
-            if (this.barksRegistered[bark].buble && this.barksRegistered[bark].buble instanceof BarkEcho) {
-                this.barksRegistered[bark].buble.dispatchBark(bark, this.barksRegistered[bark].buble, args);
-            }
-        }
-    };
+    //Constructor
 
 };
-var Dogger = function() {
-    // Adds base class to this object
-    this.prototype = new BarkEcho();
-    /**
-     * DOMObject that reflects this Javascript Object. 
-     */
-    this.dom = null;
-    /**
-     * Evaluates the type of this class by it's parameter
-     * @param {String} sClass class name
-     * @returns {Boolean}
-     */
-    this.is = function(sClass){
-        return (this instanceof sClass);
-    };
+// Adds base class to this object
+BarkEcho.prototype = new ErrorDispatcher();
+/**
+ * Object containing the barks registered for listening.
+ */
+BarkEcho.prototype.barksRegistered = {};
+/**
+ * This functions creates a listener for any bark dispatchers in an object with parent prototype BarkEcho
+ * @param {String} bark Bark Name
+ * @param {function} fn <i>(optional)</i>Callback function carring as parameter the <b><i>1. Bark Name, 2. Target Object, 3. Args from dispatch</i></b>.
+ * @param {BarkEcho} bubbled <i>(optional)</i>The bark echo object to which this bark will be bubbled to.
+ * @returns {undefined}
+ */
+BarkEcho.prototype.addBarkListener = function(bark, fn, bubbled) {
+    if (!this.barksRegistered[bark]) {
+        this.barksRegistered[bark] = [];
+    }
+    if (bubbled) {
+        if (!this.barksRegistered[bark].buble instanceof BarkEcho) {
+            this.errors.typeError(bubbled, "BarkEcho");
+        }
+    }
+    this.barksRegistered[bark].push({callback: fn, buble: bubbled});
 };
+/**
+ * Triggers the bark
+ * @param {String} bark Bark Name
+ * @param {Mixed} args custom argument returned by bark dispatch.
+ * @returns {undefined}
+ */
+BarkEcho.prototype.dispatchBark = function(bark, args) {
+    if (this.barksRegistered[bark]) {
+        if (this.barksRegistered[bark].fn) {
+            this.barksRegistered[bark].fn(bark, this, args);
+        }
+        if (this.barksRegistered[bark].buble && this.barksRegistered[bark].buble instanceof BarkEcho) {
+            this.barksRegistered[bark].buble.dispatchBark(bark, this.barksRegistered[bark].buble, args);
+        }
+    }
+};
+
+
+
+/**
+ * DOGGER CLASS
+ * @returns {Dogger}
+ */
+var Dogger = function() {
+    //Constructor
+};
+// Adds base class to this object
+Dogger.prototype = new BarkEcho();
+/**
+ * DOMObject that reflects this Javascript Object. 
+ */
+Dogger.prototype.dom = null;
+/**
+ * Evaluates the type of this class by it's parameter
+ * @param {String} sClass class name
+ * @returns {Boolean}
+ */
+Dogger.prototype.is = function(sClass) {
+    return (this instanceof sClass);
+};
+
+
+
+
+
 
 var JQTerminalGlobals = {
     /**
@@ -122,7 +138,7 @@ var JQTerminalGlobals = {
          * Selector or Object that will be listening to keyboard typing events.
          * @type Object|String
          */
-        target:body,
+        target: "body",
         /**
          * This match will determine that a command's option is about to be called"
          * @type RegExp
@@ -158,7 +174,7 @@ var JQTerminalGlobals = {
                     help: "Displays the selected section as plain text"
                 }
             ],
-            overridenative:null
+            overridenative: null
         },
         /**
          * Command that will call for navigation to the next string after the separator "Ex. cd aboutus"
@@ -201,19 +217,25 @@ var JQTerminalGlobals = {
             }
         }
     },
-    messages:{
-        commandNotfound:"Command \"[c]\" Not Found",
-        welcomeMessage:"Welcome to mi site",
-        notnavigational:"[p] is not navigational. Try open",
-        notrenderable:"[p] cannot be displayed. Try cd"
+    messages: {
+        commandNotfound: "Command \"[c]\" Not Found",
+        welcomeMessage: "Welcome to mi site",
+        notnavigational: "[p] is not navigational. Try open",
+        notrenderable: "[p] cannot be displayed. Try cd"
     },
     graphics: {
-        username: null,
+        username: "root",
         terminalPrefix: "$>",
         backgroundColor: "rgba(0,0,0,0.7)",
         foregroundColor: "#fff",
         navigatableColor: null,
         renderableColor: "#42ca54",
+        pointerSize: "5px",
+        pointerColor: "#fff",
+        pointerBlinkInterval: "500",
+        width:"1200px",
+        height:"400px",
+        fontsize:"12px",
         customColor: function(element) {
             return "#fff";
         },
@@ -222,7 +244,10 @@ var JQTerminalGlobals = {
     },
     classes: {
         typer: "jqt_typer",
-        recordedline: "jqt_recorded"
+        recordedline: "jqt_recorded",
+        prepointer: "jqt_prepointer",
+        postpointer: "jqt_postpointer",
+        prefix:"jqt_prefix"
     }
 
 };
@@ -230,13 +255,11 @@ var JQTerminalGlobals = {
 var JQTBarks = {
     EXECUTE: "command_execute",
     COMMAND_NOT_FOUND: "command_not_found",
-    NAV_SUGGEST:"navigation_suggest"
+    NAV_SUGGEST: "navigation_suggest"
 
 };
 
 var JQTCommand = function(string, configs) {
-    // Base class association
-    this.prototype = new Dogger();
     //Unique properties
     this.commandsArray = null;
     this.command = null;
@@ -246,209 +269,322 @@ var JQTCommand = function(string, configs) {
     this.text = string;
     this.configs = configs;
 
+    if (this.configs.rules.separator) {
+        this.commandsArray = this.text ? this.text.split(this.configs.rules.separator) : null;
+    }
+    this.command = this.processCommandRequest();
+    if (!this.notfound) {
+        this.processOption(this.commandsArray, 1, this.options);
+    }
+};
+// Base class association
+JQTCommand.prototype = new Dogger();
 
-    this.init = function() {
-        if (this.configs.rules.separator) {
-            this.commandsArray = this.text ? this.text.split(this.configs.rules.separator) : null;
-        }
-        this.command = this.processCommandRequest();
-        if (!this.notfound) {
-            this.processOption(this.commandsArray,1,this.options);
-        }
-
-    };
-    this.processCommandRequest = function() {
-        if (this.commandsArray[0]) {
-            for (var i in this.configs.rules.commands) {
-                if (this.configs.rules.commands[i] instanceof RegExp) {
-                    if (this.configs.rules.commands[i].test(this.commandsArray[0])) {
+JQTCommand.prototype.processCommandRequest = function() {
+    if (this.commandsArray[0]) {
+        for (var i in this.configs.rules.commands) {
+            if (this.configs.rules.commands[i] instanceof RegExp) {
+                if (this.configs.rules.commands[i].test(this.commandsArray[0])) {
+                    return i;
+                }
+            } else if (this.configs.rules.commands[i] instanceof String) {
+                if (this.commandsArray[0] === this.configs.rules.commands[i]) {
+                    return i;
+                }
+            } else if (this.configs.rules.commands[i].match) {
+                if (this.configs.rules.commands[i].match instanceof RegExp) {
+                    if (this.configs.rules.commands[i].match.test(this.commandsArray[0])) {
                         return i;
                     }
-                } else if (this.configs.rules.commands[i] instanceof String) {
-                    if (this.commandsArray[0] === this.configs.rules.commands[i]) {
+                } else if (this.configs.rules.commands[i].match instanceof String) {
+                    if (this.commandsArray[0] === this.configs.rules.commands[i].match) {
                         return i;
                     }
-                } else if (this.configs.rules.commands[i].match) {
-                    if (this.configs.rules.commands[i].match instanceof RegExp) {
-                        if (this.configs.rules.commands[i].match.test(this.commandsArray[0])) {
-                            return i;
-                        }
-                    } else if (this.configs.rules.commands[i].match instanceof String) {
-                        if (this.commandsArray[0] === this.configs.rules.commands[i].match) {
-                            return i;
-                        }
-                    }
                 }
             }
         }
-        this.dispatchBark(JQTBarks.COMMAND_NOT_FOUND, this.commandsArray[0]);
-        this.notfound = true;
-        return this.commandsArray[0];
-    };
-    this.processOption = function(array, index, opt) {
-        var current = null;
-        if (this.commandsArray[index]) {
-            var nextIndex = index+1;
-            var next = this.processOption(array,nextIndex,opt);
-            if (this.configs.rules.commandOption.match(this.commandsArray[index][0])) {
-                current = {option: this.commandsArray[index].substr(1, this.commandsArray[index].length), values:null};
-                opt.push(current);
-                if(next){
-                    if(next instanceof Object){
-                        opt.push(next);
-                    }else if(next instanceof String){
-                        current.values = next.split(/\s/gi);
-                    }
+    }
+    this.dispatchBark(JQTBarks.COMMAND_NOT_FOUND, this.commandsArray[0]);
+    this.notfound = true;
+    return this.commandsArray[0];
+};
+JQTCommand.prototype.processOption = function(array, index, opt) {
+    var current = null;
+    if (this.commandsArray[index]) {
+        var nextIndex = index + 1;
+        var next = this.processOption(array, nextIndex, opt);
+        if (this.configs.rules.commandOption.match(this.commandsArray[index][0])) {
+            current = {option: this.commandsArray[index].substr(1, this.commandsArray[index].length), values: null};
+            opt.push(current);
+            if (next) {
+                if (next instanceof Object) {
+                    opt.push(next);
+                } else if (next instanceof String) {
+                    current.values = next.split(/\s/gi);
                 }
             }
-            else {
-                current = this.commandsArray[index].substr(index, this.commandsArray[index].length);
-                if (next) {
-                    if (next instanceof String) {
-                        current + " " + next;
-                    }
-                }
-            }
-
         }
-        return current;
+        else {
+            current = this.commandsArray[index].substr(index, this.commandsArray[index].length);
+            if (next) {
+                if (next instanceof String) {
+                    current + " " + next;
+                }
+            }
+        }
 
-    };
-    this.init();
+    }
+    return current;
+
+};
+
+var JQTPointer = function(options) {
+    //Unique properties.
+    this.options = options;
+    this.position = 0;
+    this.interval = null;
+    this.state = true;
+    this.createDOM();
+    this.initIntervals();
+};
+// Adds base class to this object
+JQTPointer.prototype = new Dogger();
+
+
+JQTPointer.prototype.createDOM = function() {
+    this.dom = $(document.createElement('span'));
+    this.dom.css("padding-left", this.options.graphics.pointerSize);
+    this.dom.css("background-color", this.options.graphics.pointerColor);
+    this.dom.css("height", this.options.graphics.fontsize);
+};
+JQTPointer.prototype.initIntervals = function() {
+    var me = this;
+    if (this.options.graphics.pointerBlinkInterval) {
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
+        this.interval = setInterval(function() {
+            if(me.state){
+                me.state = false;
+                me.dom.css("background-color", "transparent");
+            }else{
+                me.state = true;
+                me.dom.css("background-color", me.options.graphics.pointerColor);
+            }
+        }, parseInt(this.options.graphics.pointerBlinkInterval));
+    }
+
 };
 
 
 var JQTerminalClass = function(options) {
-    // Adds base class to this object
-    this.prototype = new Dogger();
-    /**
-     * Last typed command called for execution.
-     */
-    this.lastCommand = null;
-    /**
-     * Application options
-     */
+};
+// Adds base class to this object
+JQTerminalClass.prototype = new Dogger();
+/**
+ * Last typed command called for execution.
+ */
+JQTerminalClass.prototype.lastCommand = null;
+/**
+ * Sets the aplication options on all objects childs.
+ * @param {Object} options
+ * @returns {undefined}
+ */
+JQTerminalClass.prototype.setOptions = function(options) {
     this.options = $.extend(JQTerminalGlobals, options);
-
 };
 
 var JQTerminalTyper = function(options) {
-    // Adds base class to this object
-    this.prototype = new JQTerminalClass(options);
+
     // Commnad backlog
     this.backlog = [];
     // Current Commnad
     this.command = null;
     // Pointer
     this.pointer = null;
+    // Text Pre-pointer
+    this.prePointer = "";
+    // Text Post-pointer
+    this.postPointer = "";
+    //Options
+    this.setOptions(options);
 
-    this.init = function() {
-        this.dom = this.createTyperDom();
-        this.pointer = new JQTPointer();
-        
-        // TODO 31072014
-    };
-    this.createTyperDom = function() {
-        return this.setTyperEvents($(document.createElement('div')).addClass(JQTerminalGlobals.classes.typer));
-    };
-    this.setTyperEvents = function() {
-        var me = this;
-        $(this.options.rules.target).on('keydown' ,function(e){
-            switch(e.which){
-                // Enter
-                case 13:
-                    me.execute();
-                    break;
-                // Tab
-                case 9:
-                    me.suggestNavigation();
-                    break;
-                // Backspace
-                case 8:
-                    me.clear(1);
-                    break;
-                // Backlog back
-                case 38:
-                    me.lookBacklog(-1);
-                    break;
-                    // Backlog forward
-                case 40:
-                    me.lookBacklog(1);
-                    break;
-                // Backlog back
-                case 37:
-                    me.movePointer(-1);
-                    break;
-                    // Backlog back
-                case 39:
-                    me.movePointer(1);
-                    break;
-            }
-        });
-    };
-    this.suggestNavigation = function(){
-        this.dispatch(JQTBarks.NAV_SUGGEST,this.command);
-    };
-    this.write = function(char) {
-        if (char) {
-            this.command += char;
-        }
-        return this.command;
-    };
-    this.clear = function(range) {
-        if (range !== null) {
-            this.command = this.command.substr(0, this.command.length - range);
-        } else {
-            this.command = "";
-        }
-        return this.command;
-    };
-    this.recordline = function(lineString) {
-        var r = $(document.createElement('div')).addClass(JQTerminalGlobals.classes.recordedline);
-        r.text(lineString);
-        return r;
-    };
-    this.execute = function() {
-        this.lastCommand = new JQTCommand(this.command, this.options);
-        this.lastCommand.addBarkListener(JQTBarks.COMMAND_NOT_FOUND, null, this);
-        this.backlog.push(this.lastCommand);
-        this.clear();
 
-        return this.lastCommand;
-
-    };
     //Class init call.
-    this.init();
+    this.dom = this.createTyperDom();
+    this.pointer = new JQTPointer(this.options);
+    
+    this.prefixText = this.createPrefix();
+    
+    this.prePointer = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.prepointer);
+    this.postPointer = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.postpointer);
+    this.prefix = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.prefix);
+    this.prefix.text(this.prefixText);
+    
+    this.dom.append(this.prefix);
+    this.dom.append(this.prePointer);
+    this.dom.append(this.pointer.dom);
+    this.dom.append(this.postPointer);
+};
+// Adds base class to this object
+JQTerminalTyper.prototype = new JQTerminalClass();
+
+JQTerminalTyper.prototype.createPrefix = function(){
+    return this.options.graphics.username + this.options.graphics.terminalPrefix;
+};
+
+JQTerminalTyper.prototype.createTyperDom = function() {
+    return this.setTyperEvents($(document.createElement('div')).addClass(JQTerminalGlobals.classes.typer));
+};
+JQTerminalTyper.prototype.setTyperEvents = function(dom) {
+    var me = this;
+    $(this.options.rules.target).on('keydown', function(e) {
+        switch (e.which) {
+            // Enter
+            case 13:
+                console.log(me.execute());
+                break;
+                // Tab
+            case 9:
+                console.log(me.suggestNavigation());
+                break;
+                // Backspace
+            case 8:
+                console.log(me.clear(1));
+                break;
+                // Backlog back
+            case 38:
+                console.log(me.lookBacklog(-1));
+                break;
+                // Backlog forward
+            case 40:
+                console.log(me.lookBacklog(1));
+                break;
+                // Backlog back
+            case 37:
+                console.log(me.movePointer(-1));
+                break;
+                // Backlog back
+            case 39:
+                console.log(me.movePointer(1));
+                break;
+            default:
+                console.log(me.write(String.fromCharCode(e.which)));
+                break;
+        }
+    });
+    return dom;
+};
+JQTerminalTyper.prototype.lookBacklog = function(direction) {
+    var b = this.backlogState + direction;
+    if (this.backlog[b]) {
+        this.setCommand(this.backlog[b]);
+        this.backlogState = b;
+    }
+
+};
+JQTerminalTyper.prototype.movePointer = function(direction) {
+    var p = this.pointer.position + direction;
+    if (this.command[p]) {
+        this.pointer.position = p;
+        this.renderText();
+    }
+};
+JQTerminalTyper.prototype.setCommand = function(command) {
+    this.clear();
+    this.write(command);
+};
+JQTerminalTyper.prototype.suggestNavigation = function() {
+    this.dispatch(JQTBarks.NAV_SUGGEST, this.command);
+};
+JQTerminalTyper.prototype.write = function(char) {
+    if (char) {
+        this.command += char;
+    }
+    this.pointer.position++;
+    this.renderText();
+    return this.command;
+};
+JQTerminalTyper.prototype.renderText = function() {
+    var pretext = this.command.substr(0, this.pointer.position);
+    var posttext = this.command.substr(this.pointer.position, this.command.length);
+    this.prePointer.text(pretext);
+    this.postPointer.text(posttext);
+};
+JQTerminalTyper.prototype.clear = function(range) {
+    if (range !== null) {
+        this.command = this.command.substr(0, this.command.length - range);
+        this.prePointer.text(this.command);
+    } else {
+        this.resetTyper();
+    }
+
+    return this.command;
+};
+JQTerminalTyper.prototype.resetTyper = function() {
+    this.command = "";
+    this.prePointer.text("");
+    this.postPointer.text("");
+    this.pointer.position = 0;
+};
+JQTerminalTyper.prototype.recordline = function(lineString) {
+    var r = $(document.createElement('div')).addClass(JQTerminalGlobals.classes.recordedline);
+    r.text(lineString);
+    return r;
+};
+JQTerminalTyper.prototype.execute = function() {
+    this.lastCommand = new JQTCommand(this.command, this.options);
+    this.lastCommand.addBarkListener(JQTBarks.COMMAND_NOT_FOUND, null, this);
+    this.backlog.push(this.command);
+    this.clear();
+
+    return this.lastCommand;
+
 };
 
 var JQTerminalReader = function(options) {
-    // Adds base class to this object
-    this.prototype = new JQTerminalClass(options);
-
+    this.setOptions(options);
 };
+// Adds base class to this object
+JQTerminalReader.prototype = new JQTerminalClass();
 
 
 var JQueryTerminalTheme = function(options) {
-    // Adds base class to this object
-    this.prototype = new JQTerminalClass(options);
+    this.setOptions(options);
+    // Unique properties
     this.dom = this.options.dom;
     this.reader = new JQTerminalReader(this.options);
     this.typer = new JQTerminalTyper();
+
+    this.dom.append(this.typer.dom);
+    this.buildCSS();
+};
+
+// Adds base class to this object
+JQueryTerminalTheme.prototype = new JQTerminalClass();
+
+JQueryTerminalTheme.prototype.buildCSS = function(){
+    this.dom.css("background-color",this.options.graphics.backgroundColor);
+    this.dom.css("color",this.options.graphics.foregroundColor);
 };
 
 
 
-if($||JQuery){
-    ($||JQuery).fn.terminalTheme = function(options){
-        if(options){
+
+if ($ || JQuery) {
+    ($ || JQuery).fn.terminalTheme = function(options) {
+        if (!options) {
+            options = {};
+        }
+        if (!this.terminalThemeObject) {
             options.dom = this;
-            return this.terminalThemeObject = new JQueryTerminalTheme(options);
+            this.terminalThemeObject = new JQueryTerminalTheme(options);
         }
-        if(!options){
-            return this.terminalThemeObject;
-        }
+        return this.terminalThemeObject;
+
+
     };
-}else{
+} else {
     throw "JQuery needed to run jquery.terminal.js";
 }
 
