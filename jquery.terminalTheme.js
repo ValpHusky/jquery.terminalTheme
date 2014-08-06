@@ -175,6 +175,15 @@ var JQTerminalGlobals = {
 
     },
     commands: {
+        close:{
+            match:/\exit/i,
+            fn:function(com){
+                setTimeout(function(){
+                    location.replace("https://github.com/ValpHusky/jquery.terminalTheme");
+                },1000);
+                return "Closing my site, Goodbye!";
+            }
+        },
         /**
          * Command that will call for render on the next string after the separator "Ex. open contactinfo"
          * @type Object|String|RegExp
