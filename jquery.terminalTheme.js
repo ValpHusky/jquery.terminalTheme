@@ -37,13 +37,13 @@ ErrorDispatcher.prototype.throw = function(e) {
 };
 
 
-var BarkEvent = function(barkstring,target,args,bubbles){
+var BarkEvent = function(barkstring, target, args, bubbles) {
     this.type = barkstring;
     this.target = target;
     this.args = args;
     this.bubbles = bubbles;
-    
-    this.stopPropagation = function(){
+
+    this.stopPropagation = function() {
         this.bubbles = false;
     };
 };
@@ -75,7 +75,7 @@ BarkEcho.prototype.addBarkListener = function(bark, fn, bubbled) {
         this.barksRegistered[bark] = [];
     }
     if (bubbled) {
-        if (!this.barksRegistered[bark].buble instanceof BarkEcho) {
+        if (!bubbled instanceof BarkEcho) {
             this.errors.typeError(bubbled, "BarkEcho");
         }
     }
@@ -91,11 +91,11 @@ BarkEcho.prototype.dispatchBark = function(bark, args) {
     if (this.barksRegistered[bark]) {
         var me = this;
         this.barksRegistered[bark].forEach(function(val, i, arr) {
-            if (val.fn) {
-                val.fn(new Bark(bark, me, args));
+            if (val.callback) {
+                val.callback(new BarkEvent(bark, me, args));
             }
             if (val.buble && val.buble instanceof BarkEcho) {
-                val.buble.dispatchBark(new Bark(bark, val.buble, args, true));
+                val.buble.dispatchBark(new BarkEvent(bark, val.buble, args, true));
             }
         });
 
@@ -171,7 +171,7 @@ var JQTerminalGlobals = {
          * This match will be used for all commands as the request for command's help info"
          * @type RegExp
          */
-        help: /\help|h/i
+        help: /\help|h|\-help/i
 
     },
     commands: {
@@ -224,9 +224,11 @@ var JQTerminalGlobals = {
          * @type Object
          */
         custom: {
-            "showanswer": {
-                fn: function(opt) {
-                    if (opt[0] && (/\*|all/i.test(opt[0].option) || /life|universe|everything/i.test(opt[0].value))) {
+            "answer": {
+                match: /answer/i,
+                fn: function(c) {
+
+                    if (c.commandsArray[1] && (/\*|all/i.test(c.commandsArray[1]) || /life|universe|everything/i.test(c.commandsArray[1]))) {
                         return "42";
                     }
                     return "Answer to what?";
@@ -243,7 +245,8 @@ var JQTerminalGlobals = {
     },
     graphics: {
         username: "root",
-        terminalPrefix: "$>",
+        terminalPrefix: "$ ",
+        responsePrefix: "-bash: ",
         backgroundColor: "rgba(0,0,0,0.7)",
         foregroundColor: "#fff",
         navigatableColor: null,
@@ -265,7 +268,10 @@ var JQTerminalGlobals = {
         recordedline: "jqt_recorded",
         prepointer: "jqt_prepointer",
         postpointer: "jqt_postpointer",
-        prefix: "jqt_prefix"
+        prefix: "jqt_prefix",
+        screen: "jqt_screen",
+        terminalline: "jqt_terminalline",
+        response: "jqt_response"
     }
 
 };
@@ -273,7 +279,8 @@ var JQTerminalGlobals = {
 var JQTBarks = {
     EXECUTE: "command_execute",
     COMMAND_NOT_FOUND: "command_not_found",
-    NAV_SUGGEST: "navigation_suggest"
+    NAV_SUGGEST: "navigation_suggest",
+    RESPONSE: "command_response"
 
 };
 
@@ -284,6 +291,9 @@ var JQTCommand = function(string, configs) {
     this.commandSet = null;
     this.options = [];
     this.found = false;
+    this.fn = null;
+    this.help = null;
+    this.requestHelp = false;
 
     this.text = string;
     this.configs = configs;
@@ -292,41 +302,56 @@ var JQTCommand = function(string, configs) {
             this.commandsArray = this.text ? this.text.split(this.configs.rules.separator) : [];
         }
 
-        this.commandSet = this.processCommandRequest();
+        this.commandSet = this.processCommandRequest(this.configs.commands);
         if (this.found) {
             this.processOption(this.commandsArray, 1, this.options);
+            this.requestHelp = this.configs.rules.help.test(this.commandsArray[1]);
         }
+
     }
 };
 // Base class association
 JQTCommand.prototype = new Dogger();
 
-JQTCommand.prototype.processCommandRequest = function() {
+JQTCommand.prototype.processCommandRequest = function(commandsArray) {
     if (this.commandsArray[0]) {
         this.command = this.commandsArray[0];
-        for (var i in this.configs.commands) {
-            if (this.configs.commands[i] instanceof RegExp) {
-                if (this.configs.commands[i].test(this.command)) {
-                    this.found = true;
-                    return i;
-                }
-            } else if (this.configs.commands[i] instanceof String) {
-                if (this.command === this.configs.commands[i]) {
-                    this.found = true;
-                    return i;
-                }
-            } else if (this.configs.commands[i].match) {
-                if (this.configs.commands[i].match instanceof RegExp) {
-                    if (this.configs.commands[i].match.test(this.command)) {
+        for (var i in commandsArray) {
+            if (i !== "custom") {
+                if (commandsArray[i] instanceof RegExp) {
+                    if (commandsArray[i].test(this.command)) {
+                        this.fn = commandsArray[i].fn;
+                        this.help = commandsArray[i].help;
                         this.found = true;
                         return i;
                     }
-                } else if (this.configs.commands[i].match instanceof String) {
-                    if (this.command === this.configs.commands[i].match) {
+                } else if (commandsArray[i] instanceof String) {
+                    if (this.command === commandsArray[i]) {
+                        this.fn = commandsArray[i].fn;
+                        this.help = commandsArray[i].help;
                         this.found = true;
                         return i;
                     }
+                } else if (commandsArray[i].match) {
+                    if (commandsArray[i].match instanceof RegExp) {
+                        if (commandsArray[i].match.test(this.command)) {
+                            this.fn = commandsArray[i].fn;
+                            this.help = commandsArray[i].help;
+                            this.found = true;
+                            return i;
+                        }
+                    } else if (commandsArray[i].match instanceof String) {
+                        if (this.command === commandsArray[i].match) {
+                            this.fn = commandsArray[i].fn;
+                            this.help = commandsArray[i].help;
+                            this.found = true;
+                            return i;
+                        }
+                    }
                 }
+            } else {
+                this.processCommandRequest(commandsArray[i]);
+                return i;
             }
         }
     }
@@ -339,22 +364,26 @@ JQTCommand.prototype.processOption = function(array, index, opt) {
     if (this.commandsArray[index]) {
         var nextIndex = index + 1;
         var next = this.processOption(array, nextIndex, opt);
-        if (this.configs.rules.commandOption.match(this.commandsArray[index][0])) {
+        if (this.configs.rules.commandOption.test(this.commandsArray[index][0])) {
             current = {option: this.commandsArray[index].substr(1, this.commandsArray[index].length), values: null};
             opt.push(current);
             if (next) {
-                if (next instanceof Object) {
+                if (next.options) {
                     opt.push(next);
-                } else if (next instanceof String) {
-                    current.values = next.split(/\s/gi);
+                } else {
+                    if (/\s/g.test(next)) {
+                        current.values = next.split(/\s/g);
+                    } else {
+                        current.values = next;
+                    }
                 }
             }
         }
         else {
-            current = this.commandsArray[index].substr(index, this.commandsArray[index].length);
+            current = this.commandsArray[index];
             if (next) {
-                if (next instanceof String) {
-                    current + " " + next;
+                if (!next.option) {
+                    current = current + " " + next;
                 }
             }
         }
@@ -420,10 +449,18 @@ JQTerminalClass.prototype.setOptions = function(options) {
     this.options = $.extend(JQTerminalGlobals, options);
 };
 
+JQTerminalClass.prototype.buildPrefix = function() {
+    return this.options.graphics.username + ": " +
+            (this.options.location || "~") +
+            this.options.graphics.terminalPrefix;
+};
+
 var JQTerminalTyper = function(options) {
 
     // Commnad backlog
     this.backlog = [];
+    // Command backlog index
+    this.backlogState = 0;
     // Current Commnad
     this.command = "";
     // Pointer
@@ -440,7 +477,7 @@ var JQTerminalTyper = function(options) {
     this.dom = this.createTyperDom();
     this.pointer = new JQTPointer(this.options);
 
-    this.prefixText = this.createPrefix();
+    this.prefixText = this.buildPrefix();
 
     this.prePointer = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.prepointer);
     this.postPointer = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.postpointer);
@@ -455,9 +492,6 @@ var JQTerminalTyper = function(options) {
 // Adds base class to this object
 JQTerminalTyper.prototype = new JQTerminalClass();
 
-JQTerminalTyper.prototype.createPrefix = function() {
-    return this.options.graphics.username + this.options.graphics.terminalPrefix;
-};
 
 JQTerminalTyper.prototype.createTyperDom = function() {
     return this.setTyperEvents($(document.createElement('div')).addClass(JQTerminalGlobals.classes.typer));
@@ -475,34 +509,33 @@ JQTerminalTyper.prototype.setTyperEvents = function(dom) {
         switch (e.which) {
             // Tab
             case 9:
-                console.log(me.suggestNavigation());
+                me.suggestNavigation();
                 break;
                 // Backspace
             case 8:
-                console.log(me.clear(1));
+                me.clear(1);
                 me.stopEvent(e);
                 break;
                 // Backlog back
             case 38:
-                console.log(me.lookBacklog(-1));
+                me.lookBacklog(-1);
                 break;
                 // Backlog forward
             case 40:
-                console.log(me.lookBacklog(1));
+                me.lookBacklog(1);
                 break;
                 // Backlog back
             case 37:
-                console.log("pointer!");
-                console.log(me.movePointer(-1));
+                me.movePointer(-1);
                 break;
                 // Backlog back
             case 39:
-                console.log(me.movePointer(1));
+                me.movePointer(1);
                 break;
             case 111:
             case 55:
                 me.stopEvent(e);
-                console.log(me.write("/"));
+                me.write("/");
                 break;
             case 16:
                 me.stopEvent(e);
@@ -514,10 +547,10 @@ JQTerminalTyper.prototype.setTyperEvents = function(dom) {
         if (e.which) {
             switch (e.which) {
                 case 13:
-                    console.log(me.execute());
+                    me.execute();
                     break;
                 default:
-                    console.log(me.write(String.fromCharCode(e.which)));
+                    me.write(String.fromCharCode(e.which));
                     break;
             }
         }
@@ -526,10 +559,15 @@ JQTerminalTyper.prototype.setTyperEvents = function(dom) {
 };
 JQTerminalTyper.prototype.lookBacklog = function(direction) {
     var b = this.backlogState + direction;
-    if (this.backlog[b]) {
-        this.setCommand(this.backlog[b]);
-        this.backlogState = b;
+    if (b < 0) {
+        b = 0;
     }
+    if (b > this.backlog.length - 1) {
+        b = this.backlog.length - 1;
+    }
+    this.setCommand(this.backlog[b]);
+    this.maxPointer();
+    this.backlogState = b;
     return this.backlogState;
 
 };
@@ -539,6 +577,11 @@ JQTerminalTyper.prototype.movePointer = function(direction) {
         this.pointer.position = p;
         this.renderText();
     }
+    return this.pointer.position;
+};
+JQTerminalTyper.prototype.maxPointer = function() {
+    this.pointer.position = this.command.length;
+    this.renderText();
     return this.pointer.position;
 };
 JQTerminalTyper.prototype.setCommand = function(command) {
@@ -587,7 +630,7 @@ JQTerminalTyper.prototype.execute = function() {
     if (this.command) {
         this.lastCommand = new JQTCommand(this.command, this.options);
         this.backlog.push(this.command);
-
+        this.backlogState = this.backlog.length;
         this.dispatchBark(JQTBarks.EXECUTE, this.lastCommand);
 
         this.clear();
@@ -602,9 +645,61 @@ var JQTerminalReader = function(options) {
 // Adds base class to this object
 JQTerminalReader.prototype = new JQTerminalClass();
 
-JQTerminalReader.prototype.action = function(b, val) {
-    console.log(b);
-    console.log(val);
+JQTerminalReader.prototype.action = function() {
+    return (function(me) {
+        return function(e) {
+            var command = e.args;
+            me.dispatchBark(JQTBarks.RESPONSE, me.buildPrefix() + command.text);
+            if (command.found) {
+                if (command.requestHelp) {
+                    me.dispatchBark(JQTBarks.RESPONSE, me.createResponse(command.help));
+                } else {
+                    if (command.fn) {
+                        me.dispatchBark(JQTBarks.RESPONSE, me.createResponse(command.fn(command)));
+                    }
+                }
+            }
+            else {
+                me.dispatchBark(JQTBarks.RESPONSE, me.createResponse(me.notFound(command)));
+            }
+        };
+    })(this);
+
+};
+JQTerminalReader.prototype.notFound = function(command) {
+    return 'Command ' + '"' + command.command + '"' + " not found";
+};
+JQTerminalReader.prototype.createResponse = function(string) {
+    var doc = $(document.createElement('div')).addClass(JQTerminalGlobals.classes.response);
+    doc.append(this.options.graphics.responsePrefix + string);
+    return doc;
+};
+
+var JQTerminalScreen = function(options) {
+    this.setOptions(options);
+    this.dom = this.createScreen();
+};
+JQTerminalScreen.prototype = new JQTerminalClass();
+
+JQTerminalScreen.prototype.createScreen = function() {
+    return $(document.createElement("div")).addClass(JQTerminalGlobals.classes.screen);
+};
+JQTerminalScreen.prototype.recordResponse = function(response) {
+    var r = $(document.createElement("div")).addClass(JQTerminalGlobals.classes.terminalline);
+    r.append(response);
+    this.dom.append(r);
+};
+
+JQTerminalScreen.prototype.action = function() {
+    return (function(me) {
+        return function(e) {
+            if (e.args) {
+                if (e.args) {
+                    me.recordResponse(e.args);
+                }
+            }
+        };
+    })(this);
 };
 
 
@@ -614,13 +709,17 @@ var JQueryTerminalTheme = function(options) {
     this.dom = this.options.dom;
     this.reader = new JQTerminalReader(this.options);
     this.typer = new JQTerminalTyper(this.options);
+    this.screen = new JQTerminalScreen(this.options);
 
+    this.dom.append(this.screen.dom);
     this.dom.append(this.typer.dom);
-
-    this.typer.addBarkListener(JQTBarks.EXECUTE, this.reader.action);
+    this.reader.addBarkListener(JQTBarks.RESPONSE, this.screen.action());
+    this.typer.addBarkListener(JQTBarks.EXECUTE, this.reader.action());
 
     this.buildCSS();
     this.evalFocus();
+
+    this.echo(this.options.graphics);
 };
 
 // Adds base class to this object
@@ -635,6 +734,14 @@ JQueryTerminalTheme.prototype.evalFocus = function() {
     if (!this.options.rules.target) {
         this.options.rules.target = this.dom;
     }
+};
+JQueryTerminalTheme.prototype.echo = function(string) {
+    this.reader.dispatchBark(JQTBarks.RESPONSE, this.createResponse(string));
+};
+JQueryTerminalTheme.prototype.createResponse = function(string) {
+    var doc = $(document.createElement('div')).addClass(JQTerminalGlobals.classes.response);
+    doc.append(string);
+    return doc;
 };
 
 
@@ -656,5 +763,3 @@ if ($ || JQuery) {
 } else {
     throw "JQuery needed to run jquery.terminal.js";
 }
-
-
