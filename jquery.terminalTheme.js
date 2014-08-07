@@ -175,12 +175,13 @@ var JQTerminalGlobals = {
 
     },
     commands: {
-        close:{
-            match:/\exit/i,
-            fn:function(com){
-                setTimeout(function(){
+        close: {
+            display:"exit",
+            match: /\exit/i,
+            fn: function(com) {
+                setTimeout(function() {
                     location.replace("https://github.com/ValpHusky/jquery.terminalTheme");
-                },1000);
+                }, 1000);
                 return "Closing my site, Goodbye!";
             }
         },
@@ -191,6 +192,7 @@ var JQTerminalGlobals = {
         render: {
             match: /open/i,
             help: "Displays the information from an available section",
+            display:"open",
             options: [
                 {
                     match: /\*|all/i,
@@ -207,23 +209,21 @@ var JQTerminalGlobals = {
          * Command that will call for navigation to the next string after the separator "Ex. cd aboutus"
          * @type Object|String|RegExp
          */
-        navigateTo: {
+        navigate: {
             match: /cd/i,
+            display:"cd",
             help: "Navigates to the selected available category"
         },
-        /**
-         * Command that will call for render navigation back to parent "Ex. cd .."
-         * @type Object|String|RegExp
-         */
-        navigateBack: /cd[\s|]\.\./i,
         /**
          * Command that will show the list of navigationable objects and renderable objects
          * @type Object|String|RegExp
          */
         showlist: {
             match: /ls/i,
+            display:"ls",
             help: "Shows the list of current available categories for navigation or sections for opening them"
         },
+        help: /help/i,
         /**
          * This object contains a list of properties corresponding to any custom command. 
          * This object should be named with the string command and should also contain properties:<ul>
@@ -235,6 +235,7 @@ var JQTerminalGlobals = {
         custom: {
             "answer": {
                 match: /answer/i,
+                display:"answer",
                 fn: function(c) {
 
                     if (c.commandsArray[1] && (/\*|all/i.test(c.commandsArray[1]) || /life|universe|everything/i.test(c.commandsArray[1]))) {
@@ -247,10 +248,8 @@ var JQTerminalGlobals = {
         }
     },
     messages: {
-        commandNotfound: "Command \"[c]\" Not Found",
-        welcomeMessage: "Welcome to mi site",
-        notnavigational: "[p] is not navigational. Try open",
-        notrenderable: "[p] cannot be displayed. Try cd"
+        notfound: "Command Not Found",
+        welcome: "Welcome to mi site"
     },
     graphics: {
         username: "root",
@@ -280,7 +279,8 @@ var JQTerminalGlobals = {
         prefix: "jqt_prefix",
         screen: "jqt_screen",
         terminalline: "jqt_terminalline",
-        response: "jqt_response"
+        response: "jqt_response",
+        terminaltext: "jqttext"
     }
 
 };
@@ -488,9 +488,9 @@ var JQTerminalTyper = function(options) {
 
     this.prefixText = this.buildPrefix();
 
-    this.prePointer = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.prepointer);
-    this.postPointer = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.postpointer);
-    this.prefix = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.prefix);
+    this.prePointer = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.prepointer).addClass(JQTerminalGlobals.classes.terminaltext);
+    this.postPointer = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.postpointer).addClass(JQTerminalGlobals.classes.terminaltext);
+    this.prefix = $(document.createElement("span")).addClass(JQTerminalGlobals.classes.prefix).addClass(JQTerminalGlobals.classes.terminaltext);
     this.prefix.text(this.prefixText);
 
     this.dom.append(this.prefix);
@@ -611,8 +611,11 @@ JQTerminalTyper.prototype.write = function(char) {
 JQTerminalTyper.prototype.renderText = function() {
     var pretext = this.command.substr(0, this.pointer.position);
     var posttext = this.command.substr(this.pointer.position, this.command.length);
-    this.prePointer.text(pretext);
-    this.postPointer.text(posttext);
+    this.prePointer.html(this.htmlize(pretext));
+    this.postPointer.html(this.htmlize(posttext));
+};
+JQTerminalTyper.prototype.htmlize = function(textfragment) {
+    return textfragment.replace(/\s/ig, "&nbsp;");
 };
 JQTerminalTyper.prototype.clear = function(range) {
     if (range) {
@@ -650,10 +653,66 @@ JQTerminalTyper.prototype.execute = function() {
 
 var JQTerminalReader = function(options) {
     this.setOptions(options);
+    this.commandSet = this.buildCommands();
 };
 // Adds base class to this object
 JQTerminalReader.prototype = new JQTerminalClass();
 
+JQTerminalReader.prototype.buildCommands = function(coms) {
+    var coms = {};
+    for (var i in this.options.commands) {
+        if (i !== "custom") {
+            coms[i] = this.options.commands[i];
+        }
+    }
+    if (this.options.commands.custom) {
+        for (var j in this.options.commands.custom) {
+            coms[j] = this.options.commands.custom[j];
+        }
+    }
+    return coms;
+};
+
+JQTerminalReader.prototype.execute = function(name) {
+    switch (name) {
+        case "help":
+            return this.throwHelp();
+            break;
+    }
+};
+
+JQTerminalReader.prototype.throwHelp = function() {
+    var list = $(document.createElement("table")).addClass("tthelp");
+    for (var i in this.commandSet) {
+        var l = $(document.createElement("tr"));
+        var com = $(document.createElement("td")).addClass("ttcom");
+        var help = $(document.createElement("td")).addClass("tthelp_d");
+        
+        com.html("<b>"+(this.commandSet[i].display || i)+"</b>");
+        help.text(this.commandSet[i].help || "");
+        l.append(com);
+        l.append(help);
+        
+        list.append(l);
+    }
+    return list;
+};
+JQTerminalReader.prototype.throwHelp = function() {
+    var list = $(document.createElement("table")).addClass("tthelp");
+    for (var i in this.commandSet) {
+        var l = $(document.createElement("tr"));
+        var com = $(document.createElement("td")).addClass("ttcom");
+        var help = $(document.createElement("td")).addClass("tthelp_d");
+        
+        com.text(this.commandSet[i].display || i);
+        help.text(this.commandSet[i].help || "");
+        l.append(com);
+        l.append(help);
+        
+        list.append(l);
+    }
+    return list;
+};
 JQTerminalReader.prototype.action = function() {
     return (function(me) {
         return function(e) {
@@ -661,10 +720,12 @@ JQTerminalReader.prototype.action = function() {
             me.dispatchBark(JQTBarks.RESPONSE, me.buildPrefix() + command.text);
             if (command.found) {
                 if (command.requestHelp) {
-                    me.dispatchBark(JQTBarks.RESPONSE, me.createResponse(command.help));
+                    me.dispatchBark(JQTBarks.RESPONSE, me.createResponse(command.help, true));
                 } else {
                     if (command.fn) {
                         me.dispatchBark(JQTBarks.RESPONSE, me.createResponse(command.fn(command)));
+                    } else {
+                        me.dispatchBark(JQTBarks.RESPONSE, me.createResponse(me.execute(command.command)));
                     }
                 }
             }
@@ -676,11 +737,14 @@ JQTerminalReader.prototype.action = function() {
 
 };
 JQTerminalReader.prototype.notFound = function(command) {
-    return 'Command ' + '"' + command.command + '"' + " not found";
+    return this.options.messages.notfound;
 };
-JQTerminalReader.prototype.createResponse = function(string) {
+JQTerminalReader.prototype.createResponse = function(string, withprefix) {
     var doc = $(document.createElement('div')).addClass(JQTerminalGlobals.classes.response);
-    doc.append(this.options.graphics.responsePrefix + string);
+    if (withprefix) {
+        doc.append(this.options.graphics.responsePrefix);
+    }
+    doc.append(string);
     return doc;
 };
 
@@ -694,7 +758,7 @@ JQTerminalScreen.prototype.createScreen = function() {
     return $(document.createElement("div")).addClass(JQTerminalGlobals.classes.screen);
 };
 JQTerminalScreen.prototype.recordResponse = function(response) {
-    var r = $(document.createElement("div")).addClass(JQTerminalGlobals.classes.terminalline);
+    var r = $(document.createElement("div")).addClass(JQTerminalGlobals.classes.terminalline).addClass(JQTerminalGlobals.classes.terminaltext);
     r.append(response);
     this.dom.append(r);
 };
@@ -715,42 +779,46 @@ JQTerminalScreen.prototype.action = function() {
 var JQueryTerminalTheme = function(options) {
     this.setOptions(options);
     // Unique properties
+    this.mainDom = this.options.main;
     this.dom = this.options.dom;
     this.reader = new JQTerminalReader(this.options);
     this.typer = new JQTerminalTyper(this.options);
     this.screen = new JQTerminalScreen(this.options);
+    this.destroyed = false;
 
     this.dom.append(this.screen.dom);
     this.dom.append(this.typer.dom);
     this.reader.addBarkListener(JQTBarks.RESPONSE, this.screen.action());
     this.typer.addBarkListener(JQTBarks.EXECUTE, this.reader.action());
 
-    this.buildCSS();
     this.evalFocus();
 
-    this.echo(this.options.graphics);
+    this.echo(this.buildWelcome());
+    
 };
 
 // Adds base class to this object
 JQueryTerminalTheme.prototype = new JQTerminalClass();
 
-JQueryTerminalTheme.prototype.buildCSS = function() {
-    this.dom.css("background-color", this.options.graphics.backgroundColor);
-    this.dom.css("color", this.options.graphics.foregroundColor);
-};
 
 JQueryTerminalTheme.prototype.evalFocus = function() {
     if (!this.options.rules.target) {
         this.options.rules.target = this.dom;
     }
 };
-JQueryTerminalTheme.prototype.echo = function(string) {
-    this.reader.dispatchBark(JQTBarks.RESPONSE, this.createResponse(string));
+JQueryTerminalTheme.prototype.buildWelcome = function() {
+    return $(this.options.messages.welcome)?$(this.options.messages.welcome).clone().show():this.options.messages.welcome || "";
 };
-JQueryTerminalTheme.prototype.createResponse = function(string) {
-    var doc = $(document.createElement('div')).addClass(JQTerminalGlobals.classes.response);
-    doc.append(string);
-    return doc;
+JQueryTerminalTheme.prototype.echo = function(string) {
+    this.screen.recordResponse(string);
+};
+JQueryTerminalTheme.prototype.doHTML = function() {
+    this.options.mainDom.children().show();
+    this.options.mainDom.children(".terminalThememain").hide();
+};
+JQueryTerminalTheme.prototype.doTerminal = function() {
+    this.options.mainDom.children().hide();
+    this.options.mainDom.children(".terminalThememain").show();
 };
 
 
@@ -762,7 +830,10 @@ if ($ || JQuery) {
             options = {};
         }
         if (!this.terminalThemeObject) {
-            options.dom = this;
+            this.children().hide();
+            options.mainDom = this;
+            options.dom = $(document.createElement("div")).addClass("terminalThememain");
+            options.mainDom.append(options.dom);
             this.terminalThemeObject = new JQueryTerminalTheme(options);
         }
         return this.terminalThemeObject;

@@ -21,12 +21,50 @@
  * @link    http://terminal.sergio.im Terminal Project
  * @author  Sergio Gómez
  */
-body{
-    background-color: #000;
-    font-family: monospace;
+
+
+.terminalThememain{
+    background-color: transparent;
 }
+.terminalThememain *{
+    font-family: monospace !important;
+    color:greenyellow !important;
+}
+.jqt_screen  *{
+    background: none !important;
+    padding:0 !important;
+    margin: 0 !important;
+    border-color: greenyellow !important;
+    text-align: left;
+}
+.terminalThememain  h1{
+    font-size: 12px;
+    height: 30px;
+    line-height: 15px;
+}
+
+.jqt_typer{
+    margin-top: 10px !important;
+}
+
+.jqttext{
+    line-height: 15px;
+}
+
 
 .jqt_response{
     margin-left: 10px;
     margin-bottom: 5px;
+}
+
+.tthelp >tbody > tr > td{
+   display:block;
+   float:left;
+}
+td.ttcom{
+   width: 20%;
+   font-weight: bold;
+}
+td.tthelp_d{
+    width: 80%;
 }
