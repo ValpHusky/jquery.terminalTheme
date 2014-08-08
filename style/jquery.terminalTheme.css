@@ -22,7 +22,9 @@
  * @author  Sergio Gómez
  */
 
-
+hr{
+    border-top: dashed;
+}
 .terminalThememain{
     background-color: transparent;
 }
@@ -44,27 +46,38 @@
 }
 
 .jqt_typer{
-    margin-top: 10px !important;
 }
 
 .jqttext{
-    line-height: 15px;
 }
 
 
 .jqt_response{
-    margin-left: 10px;
-    margin-bottom: 5px;
+    margin:10px !important;
 }
 
 .tthelp >tbody > tr > td{
-   display:block;
-   float:left;
+    display:block;
+    float:left;
 }
 td.ttcom{
-   width: 20%;
-   font-weight: bold;
+    width: 20%;
+    font-weight: bold;
 }
 td.tthelp_d{
     width: 80%;
+}
+
+.jqt_dblock > *{
+    display:inline !important;
+    margin: 10px !important;
+}
+
+.jqt_renderable{
+    color:#3399ff !important;
+}
+
+.jqt_navigational{
+    color:#cc99ff !important;
+    font-weight: bold !important;
 }
