@@ -24,6 +24,7 @@
 
 hr{
     border-top: dashed;
+    border-width: 1px;
 }
 .terminalThememain{
     background-color: transparent;
@@ -53,7 +54,11 @@ hr{
 
 
 .jqt_response{
-    margin:10px !important;
+    margin-left:10px !important;
+}
+
+.jqt_prefix{
+    margin-right: 5px !important;
 }
 
 .tthelp >tbody > tr > td{
@@ -80,4 +85,10 @@ td.tthelp_d{
 .jqt_navigational{
     color:#cc99ff !important;
     font-weight: bold !important;
+}
+.jqt_wellcome{
+    border-style: dashed;
+    border-width: 1px;
+    margin-bottom: 10px;
+    padding: 30px !important;
 }

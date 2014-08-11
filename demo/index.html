@@ -33,17 +33,12 @@
             .terminalTheme_swap{
                 background-color: #aaa;
                 box-shadow: 0 2px 2px rgba(0,0,0,0.5);
-                position: fixed;
-                z-index: 9999;
                 width: 100%;
                 top:0;
             }
             .terminalTheme_attribution{
                 float:right;
                 color:#eee;
-            }
-            .terminalThememain{
-                margin-top: 50px;
             }
         </style>
 
@@ -53,7 +48,7 @@
             $(document).ready(function() {
                 terminal = $("#mainwrapper").terminalTheme({
                     messages: {
-                        welcome: "#header"
+                        welcome: "#header",
                     },
                     map: {
                         content: "#content",
