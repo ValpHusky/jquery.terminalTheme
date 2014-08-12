@@ -1,0 +1,94 @@
+/* 
+ * Copyright (C) 2014 Sergio Gómez
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * 
+ */
+
+/*
+ * @link    http://terminal.sergio.im Terminal Project
+ * @author  Sergio Gómez
+ */
+
+hr{
+    border-top: dashed;
+    border-width: 1px;
+}
+.terminalThememain{
+    background-color: transparent;
+}
+.terminalThememain *{
+    font-family: monospace !important;
+    color:greenyellow !important;
+}
+.jqt_screen  *{
+    background: none !important;
+    padding:0 !important;
+    margin: 0 !important;
+    border-color: greenyellow !important;
+    text-align: left;
+}
+.terminalThememain  h1{
+    font-size: 12px;
+    height: 30px;
+    line-height: 15px;
+}
+
+.jqt_typer{
+}
+
+.jqttext{
+}
+
+
+.jqt_response{
+    margin-left:10px !important;
+}
+
+.jqt_prefix{
+    margin-right: 5px !important;
+}
+
+.tthelp >tbody > tr > td{
+    display:block;
+    float:left;
+}
+td.ttcom{
+    width: 20%;
+    font-weight: bold;
+}
+td.tthelp_d{
+    width: 80%;
+}
+
+.jqt_dblock > *{
+    display:inline !important;
+    margin: 10px !important;
+}
+
+.jqt_renderable{
+    color:#3399ff !important;
+}
+
+.jqt_navigational{
+    color:#cc99ff !important;
+    font-weight: bold !important;
+}
+.jqt_wellcome{
+    border-style: dashed;
+    border-width: 1px;
+    margin-bottom: 10px;
+    padding: 30px !important;
+}
