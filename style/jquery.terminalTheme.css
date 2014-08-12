@@ -28,6 +28,7 @@ hr{
 }
 .terminalThememain{
     background-color: transparent;
+    overflow: auto;
 }
 .terminalThememain *{
     font-family: monospace !important;

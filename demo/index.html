@@ -47,6 +47,22 @@
             var terminal = null;
             $(document).ready(function() {
                 terminal = $("#mainwrapper").terminalTheme({
+                    commands: {
+                        custom: {
+                            answer: {
+                                match: /answer/i,
+                                display: "answer",
+                                fn: function(command) {
+
+                                    if (command.commandsArray[1] && (/\*|all/i.test(command.commandsArray[1]) || /life|universe|everything/i.test(command.commandsArray[1]))) {
+                                        return "42";
+                                    }
+                                    return "Answer to what?";
+                                },
+                                help: "Use for the ultimate question..."
+                            }
+                        }
+                    },
                     messages: {
                         welcome: "#header",
                     },
@@ -57,7 +73,8 @@
                             facilities: "#facilities",
                             landscape: "#landscape",
                             recreation: "#recreation"
-                        }
+                        },
+                        copyright:"#copyright"
                     }
                 });
             });

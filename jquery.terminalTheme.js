@@ -177,7 +177,7 @@ var JQTerminalGlobals = {
          * This match will be used for all commands as the request for command's help info"
          * @type RegExp
          */
-        help: /\help|h|\-help/i
+        help: /\help|\-h|\-help\s/i
 
     },
     commands: {
@@ -242,18 +242,6 @@ var JQTerminalGlobals = {
          * @type Object
          */
         custom: {
-            "answer": {
-                match: /answer/i,
-                display: "answer",
-                fn: function(c) {
-
-                    if (c.commandsArray[1] && (/\*|all/i.test(c.commandsArray[1]) || /life|universe|everything/i.test(c.commandsArray[1]))) {
-                        return "42";
-                    }
-                    return "Answer to what?";
-                },
-                help: "Use for the ultimate question..."
-            }
         }
     },
     messages: {
@@ -886,7 +874,7 @@ JQueryTerminalTheme.prototype.evalFocus = function() {
 JQueryTerminalTheme.prototype.exception = function(msg) {
     return (function(me) {
         return function(e) {
-            me.echo(msg || "");
+            me.echo(me.options.graphics.responsePrefix+e.args+": "+(msg || ""));
         };
     })(this);
 };
